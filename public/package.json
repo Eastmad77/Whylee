@@ -1,0 +1,43 @@
+{
+  "name": "whylee",
+  "version": "7.2.0",
+  "type": "module",
+  "description": "Whylee — Your Daily Brain Bolt PWA",
+  "keywords": [
+    "pwa",
+    "quiz",
+    "netlify",
+    "serverless",
+    "openai",
+    "javascript"
+  ],
+  "license": "MIT",
+  "author": "Brendan Hayman",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "netlify dev",
+    "serve": "netlify dev --live",
+    "build": "echo \"Static PWA build complete.\"",
+    "functions:serve": "netlify functions:serve",
+    "functions:invoke": "netlify functions:invoke generate-questions",
+    "lint": "echo \"(optional) add your linter here\"",
+    "format": "echo \"(optional) add prettier here\""
+  },
+  "dependencies": {
+    "openai": "^4.59.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.34.0"
+  },
+  "netlify": {
+    "functions": {
+      "node_bundler": "esbuild",
+      "external_node_modules": [
+        "openai"
+      ]
+    }
+  },
+  "sideEffects": false
+}
