@@ -1,92 +1,75 @@
 /**
- * Whylee Service Worker v7.0
- * -------------------------------------------
- * Provides offline caching for static assets,
- * poster transitions, icons, and manifest.
+ * Whylee Service Worker v7.1
+ * Offline-first caching with auto-update and graceful fallbacks.
  */
+const CACHE_NAME = "whylee-cache-v7-1";
 
-const CACHE_NAME = "whylee-cache-v7";
 const ASSETS = [
-  "/",                    // root
+  "/",
   "/index.html",
   "/style.css",
   "/app.js",
   "/shell.js",
-  "/site.webmanifest",
   "/favicon.svg",
   "/app-icon.svg",
   "/header-graphic.svg",
   "/icon-192.png",
   "/icon-512.png",
-
-  // --- Posters (for splash transitions) ---
   "/poster-01-start.jpg",
   "/poster-level2.jpg",
   "/poster-06-challenge.jpg",
   "/poster-gameover.jpg",
   "/poster-night.jpg",
-
-  // --- Fallback CSV ---
-  "/questions.csv"
+  "/questions.csv",
+  "/site.webmanifest"
 ];
 
-// -------- INSTALL --------
+// ---------- INSTALL ----------
 self.addEventListener("install", (event) => {
   console.log("[Whylee SW] Installing...");
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
-// -------- ACTIVATE --------
+// ---------- ACTIVATE ----------
 self.addEventListener("activate", (event) => {
-  console.log("[Whylee SW] Activating new service worker...");
+  console.log("[Whylee SW] Activating...");
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log("[Whylee SW] Removing old cache:", key);
-            return caches.delete(key);
-          }
-        })
-      )
+      Promise.all(keys.map((key) => key !== CACHE_NAME && caches.delete(key)))
     )
   );
   self.clients.claim();
 });
 
-// -------- FETCH HANDLER --------
+// ---------- FETCH ----------
 self.addEventListener("fetch", (event) => {
-  const request = event.request;
+  const { request } = event;
 
-  // Never cache POST or API generation calls
   if (request.method !== "GET" || request.url.includes("/api/")) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {
-      const networkFetch = fetch(request)
-        .then((res) => {
-          if (!res || res.status !== 200 || res.type !== "basic") {
-            return res;
-          }
-          const cloned = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
-          return res;
+      const fetchPromise = fetch(request)
+        .then((response) => {
+          if (!response || response.status !== 200 || response.type !== "basic")
+            return response;
+          const resClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone));
+          return response;
         })
         .catch(() => cached || caches.match("/index.html"));
-
-      // Return cache first, update in background
-      return cached || networkFetch;
+      return cached || fetchPromise;
     })
   );
 });
 
-// -------- MESSAGE (skipWaiting) --------
+// ---------- MESSAGE ----------
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
+    console.log("[Whylee SW] Updating now...");
     self.skipWaiting();
   }
 });
