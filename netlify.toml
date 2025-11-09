@@ -1,22 +1,32 @@
+# =====================================================
+# Whylee — Your Daily Brain Bolt ⚡
+# Netlify configuration v7.2
+# =====================================================
+
 [build]
   publish = "public"
   functions = "netlify/functions"
+  command = "npm run build"
 
 [dev]
   command = "npm run dev"
   publish = "public"
 
+# ---------- Redirects ----------
+# Route API calls to serverless functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Catch-all for SPA routing, but avoid overriding real files
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
 
-# Schedule: generate new questions daily at 2:00 AM UTC
-[[scheduled]]
-  name = "daily-questions"
-  cron = "0 2 * * *"
-  function = "generate-questions"
-
+# ---------- Headers ----------
 [[headers]]
   for = "/*"
   [headers.values]
@@ -25,3 +35,14 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# ---------- Scheduled Functions ----------
+# Generate new AI questions every day at 2:00 AM UTC
+[[scheduled]]
+  name = "daily-questions"
+  cron = "0 2 * * *"
+  function = "generate-questions"
+
+# ---------- Environment Variables ----------
+# (Managed in Netlify UI)
+# OPENAI_API_KEY = "your_key_here"
