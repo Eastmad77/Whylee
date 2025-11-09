@@ -1,6 +1,7 @@
 {
-  "name": "Whylee — Daily Brain Training",
+  "name": "Whylee — Your Daily Brain Bolt",
   "short_name": "Whylee",
+  "description": "Daily brain training with fast, focused challenges across three levels. Tap to begin, climb the ladder, and beat your best with Whylee — Your Daily Brain Bolt.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b1e3c",
