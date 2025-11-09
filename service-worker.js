@@ -1,73 +1,94 @@
-// ======================================================
-// Whylee — Service Worker v3.8.0 (poster assets + CSV)
-// ======================================================
+/**
+ * Whylee Service Worker v7.0
+ * -------------------------------------------
+ * Provides offline caching for static assets,
+ * poster transitions, icons, and manifest.
+ */
 
-const STATIC = 'whylee-static-v3.8.0';
-const RUNTIME = 'whylee-runtime-v3.8.0';
-
+const CACHE_NAME = "whylee-cache-v7";
 const ASSETS = [
-  '/', '/index.html',
-  '/style.css', '/app.js', '/shell.js',
-  '/about.html','/contact.html','/privacy.html','/terms.html','/signin.html','/pro.html','/admin.html','/menu.html','/404.html',
-  '/favicon.svg','/app-icon.svg','/header-graphic.svg','/icon-192.png','/icon-512.png',
-  '/site.webmanifest',
-  // Posters
-  '/poster-01-start.jpg','/poster-level2.jpg','/poster-06-challenge.jpg','/poster-gameover.jpg','/poster-night.jpg',
-  // Data
-  '/questions.csv'
+  "/",                    // root
+  "/index.html",
+  "/style.css",
+  "/app.js",
+  "/shell.js",
+  "/site.webmanifest",
+  "/favicon.svg",
+  "/app-icon.svg",
+  "/header-graphic.svg",
+  "/icon-192.png",
+  "/icon-512.png",
+
+  // --- Posters (for splash transitions) ---
+  "/poster-01-start.jpg",
+  "/poster-level2.jpg",
+  "/poster-06-challenge.jpg",
+  "/poster-gameover.jpg",
+  "/poster-night.jpg",
+
+  // --- Fallback CSV ---
+  "/questions.csv"
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(STATIC).then((cache) => cache.addAll(ASSETS)));
-  self.skipWaiting();
+// -------- INSTALL --------
+self.addEventListener("install", (event) => {
+  console.log("[Whylee SW] Installing...");
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
+  );
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    if ('navigationPreload' in self.registration) {
-      try { await self.registration.navigationPreload.enable(); } catch {}
-    }
-    const keys = await caches.keys();
-    await Promise.all(keys.map((key) => {
-      if (![STATIC, RUNTIME].includes(key)) return caches.delete(key);
-    }));
-    await self.clients.claim();
-  })());
+// -------- ACTIVATE --------
+self.addEventListener("activate", (event) => {
+  console.log("[Whylee SW] Activating new service worker...");
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log("[Whylee SW] Removing old cache:", key);
+            return caches.delete(key);
+          }
+        })
+      )
+    )
+  );
+  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+// -------- FETCH HANDLER --------
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
 
-  const url = new URL(req.url);
+  // Never cache POST or API generation calls
+  if (request.method !== "GET" || request.url.includes("/api/")) return;
 
-  if (url.origin === self.location.origin) {
-    if (ASSETS.includes(url.pathname)) {
-      event.respondWith(cacheFirst(req));
-    } else {
-      event.respondWith(staleWhileRevalidate(req));
-    }
-    return;
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      const networkFetch = fetch(request)
+        .then((res) => {
+          if (!res || res.status !== 200 || res.type !== "basic") {
+            return res;
+          }
+          const cloned = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned));
+          return res;
+        })
+        .catch(() => cached || caches.match("/index.html"));
+
+      // Return cache first, update in background
+      return cached || networkFetch;
+    })
+  );
+});
+
+// -------- MESSAGE (skipWaiting) --------
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
   }
-
-  event.respondWith(fetch(req).catch(() => caches.match(req)));
 });
 
-async function cacheFirst(request) {
-  const cache = await caches.open(STATIC);
-  const cached = await cache.match(request, { ignoreSearch: true });
-  if (cached) return cached;
-  const res = await fetch(request);
-  if (res && res.ok) cache.put(request, res.clone());
-  return res;
-}
-
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(RUNTIME);
-  const cached = await cache.match(request);
-  const fetchPromise = fetch(request).then((res) => {
-    if (res && res.ok) cache.put(request, res.clone());
-    return res;
-  }).catch(() => cached || Response.error());
-  return cached || fetchPromise;
-}
+console.log("[Whylee SW] Registered and running 🎯");
