@@ -1,0 +1,42 @@
+# =======================================
+# Whylee Netlify Configuration
+# =======================================
+
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "npm run build || echo 'No build step needed'"
+
+# ---------------------------------------
+# SPA redirect (keeps offline pages working)
+# ---------------------------------------
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ---------------------------------------
+# Security headers
+# ---------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Cache-Control = "public, max-age=3600"
+
+# ---------------------------------------
+# Daily scheduled AI question generation
+# ---------------------------------------
+[[scheduled]]
+  command = "netlify functions:invoke generate-questions"
+  name = "Daily Question Refresh"
+  cron = "0 2 * * *" # every day at 2:00 AM UTC
+
+# ---------------------------------------
+# Custom environment
+# ---------------------------------------
+[context.production.environment]
+  NODE_VERSION = "18"
