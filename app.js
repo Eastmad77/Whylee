@@ -1,8 +1,7 @@
 /**
- * Whylee - app.js v2025.11
+ * Whylee - app.js v2025.11 (with poster transitions)
  * ------------------------------------------------
- * Loads questions dynamically from API or fallback CSV.
- * Supports 3 difficulty levels with auto-timers.
+ * Supports daily AI question fetch, 3 levels, and cinematic poster flow.
  */
 
 const TIME_PER_LEVEL = { 1: 10000, 2: 20000, 3: 40000 };
@@ -12,14 +11,38 @@ let currentIndex = 0;
 let score = 0;
 let strikes = 0;
 let timerInterval;
-let qRemaining = 0;
+let gamePhase = "start"; // start, level1, level2, level3, over, success
 
-// --- Level selector ---
+// Poster elements
+const posterOverlay = document.getElementById("posterOverlay");
+const posterImg = document.getElementById("posterImg");
+const posterTap = document.getElementById("posterTap");
+
+// Level selector
 const levelSelect = document.getElementById("levelSelect");
 if (levelSelect) {
   levelSelect.addEventListener("change", () => {
     selectedLevel = Number(levelSelect.value) || 1;
   });
+}
+
+// Poster image map
+const POSTERS = {
+  start: "/poster-01-start.jpg",
+  level2: "/poster-level2.jpg",
+  challenge: "/poster-06-challenge.jpg",
+  gameover: "/poster-gameover.jpg",
+  success: "/poster-night.jpg",
+};
+
+// --- Poster display logic ---
+function showPoster(type, callback) {
+  posterImg.src = POSTERS[type] || POSTERS.start;
+  posterOverlay.classList.add("show");
+  posterTap.onclick = () => {
+    posterOverlay.classList.remove("show");
+    if (callback) callback();
+  };
 }
 
 // --- Fetch Questions (AI or fallback) ---
@@ -42,18 +65,17 @@ async function fetchCSV() {
 
 // --- Utilities ---
 function shuffleArray(arr) {
-  return arr
-    .map((v) => ({ v, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ v }) => v);
+  return arr.map(v => ({ v, sort: Math.random() }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ v }) => v);
 }
-
 function filterByLevel(rows, level) {
-  return rows.filter((r) => String(r.Level || "").trim() === String(level));
+  return rows.filter(r => String(r.Level || "").trim() === String(level));
 }
 
 // --- Game flow ---
-async function startGame() {
+async function startGame(level = 1) {
+  selectedLevel = level;
   document.getElementById("startBtn").disabled = true;
   const data = await fetchCSV();
   const pool = filterByLevel(data, selectedLevel);
@@ -66,11 +88,15 @@ async function startGame() {
   score = 0;
   strikes = 0;
   currentIndex = 0;
+  updateHUD();
   nextQuestion();
 }
 
 function nextQuestion() {
-  if (currentIndex >= questions.length) return gameSuccess();
+  if (currentIndex >= questions.length) {
+    handleLevelComplete();
+    return;
+  }
 
   const q = questions[currentIndex];
   const qBox = document.getElementById("questionBox");
@@ -78,7 +104,7 @@ function nextQuestion() {
   qBox.textContent = q.Question;
   cBox.innerHTML = "";
 
-  ["OptionA", "OptionB", "OptionC", "OptionD"].forEach((key) => {
+  ["OptionA", "OptionB", "OptionC", "OptionD"].forEach(key => {
     if (!q[key]) return;
     const btn = document.createElement("button");
     btn.textContent = q[key];
@@ -93,16 +119,14 @@ function nextQuestion() {
 function checkAnswer(q, choice) {
   stopQuestionTimer();
   const correct = choice.trim().toLowerCase() === q.Answer.trim().toLowerCase();
-  if (correct) {
-    score++;
-  } else {
-    strikes++;
-  }
+  if (correct) score++;
+  else strikes++;
+
   currentIndex++;
   updateHUD();
 
   if (strikes >= 3) return gameOver();
-  if (currentIndex >= questions.length) return gameSuccess();
+  if (currentIndex >= questions.length) return handleLevelComplete();
 
   nextQuestion();
 }
@@ -110,6 +134,19 @@ function checkAnswer(q, choice) {
 function updateHUD() {
   document.getElementById("pillScore").textContent = `Score ${score}`;
   document.getElementById("progressLabel").textContent = `Q ${currentIndex}/${questions.length}`;
+}
+
+// --- Level transition handler ---
+function handleLevelComplete() {
+  stopQuestionTimer();
+
+  if (selectedLevel === 1) {
+    showPoster("level2", () => startGame(2));
+  } else if (selectedLevel === 2) {
+    showPoster("challenge", () => startGame(3));
+  } else if (selectedLevel === 3) {
+    gameSuccess();
+  }
 }
 
 // --- Timer logic ---
@@ -133,25 +170,32 @@ function startQuestionTimer(onTimeout) {
     }
   }, 100);
 }
-
-function stopQuestionTimer() {
-  clearInterval(timerInterval);
-}
+function stopQuestionTimer() { clearInterval(timerInterval); }
 
 // --- End states ---
 function gameOver() {
   stopQuestionTimer();
-  document.getElementById("questionBox").textContent = "💀 Game Over";
-  document.getElementById("choices").innerHTML = "";
-  document.getElementById("startBtn").disabled = false;
+  showPoster("gameover", resetToStart);
 }
-
 function gameSuccess() {
   stopQuestionTimer();
-  document.getElementById("questionBox").textContent = "🏆 Success! See you tomorrow!";
+  showPoster("success", resetToStart);
+}
+function resetToStart() {
+  document.getElementById("questionBox").textContent = "Tap to begin a new game.";
   document.getElementById("choices").innerHTML = "";
   document.getElementById("startBtn").disabled = false;
 }
 
 // --- Bind Start button ---
-document.getElementById("startBtn").addEventListener("click", startGame);
+document.getElementById("startBtn").addEventListener("click", () => {
+  showPoster("start", () => startGame(1));
+});
+
+// --- Initial load ---
+window.addEventListener("load", () => {
+  // preload posters for instant display
+  Object.values(POSTERS).forEach(src => {
+    const img = new Image(); img.src = src;
+  });
+});
