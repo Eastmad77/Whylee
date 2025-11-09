@@ -1,85 +1,226 @@
-/* ===== Whylee — Style v6.001 (glass + premium streak + posters) ===== */
-:root{
-  --color-dark:#0d1117; --color-dark-2:#161b22; --color-dark-3:#1f242d;
-  --color-blue:#1a73e8; --color-blue-deep:#0b53c6; --color-green:#29ffa1;
-  --text-light:#ffffff; --text-muted:#a6b3c5; --danger:#ff4c4c;
-  --glass-bg: rgba(255,255,255,.06);
-  --glass-brd: rgba(255,255,255,.18);
-  --glass-inner: rgba(255,255,255,.10);
+/* =====================================================
+   Whylee Style Sheet v7.0
+   Premium glassmorphic UI + poster transitions
+===================================================== */
+
+:root {
+  --clr-bg: #0a192f;
+  --clr-fg: #f8f9fb;
+  --clr-accent: #3aae4d;
+  --clr-muted: #94a3b8;
+  --glass-bg: rgba(255,255,255,0.08);
+  --glass-border: rgba(255,255,255,0.15);
+  --font-main: "Poppins", "Segoe UI", sans-serif;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;background:var(--color-dark);color:var(--text-light)}
-a{color:var(--color-blue)} a:hover{text-decoration:underline}
 
-/* Poster splash */
-.poster-splash{position:fixed;inset:0;z-index:1200;display:none;place-items:center;background:radial-gradient(120% 80% at 50% 20%,#0b2f5f 0%,#0b1e3c 55%,#061426 100%);overflow:hidden}
-.poster-splash.show{display:grid}
-.poster-img{width:100%;height:100%;object-fit:cover}
-.poster-tap{position:absolute;inset:0;border:0;background:transparent;cursor:pointer}
+body {
+  font-family: var(--font-main);
+  color: var(--clr-fg);
+  background: var(--clr-bg);
+  margin: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
-/* Header / Hero (glass) */
-.topbar{background:var(--color-dark-2);padding:1rem 1rem .6rem;border-bottom:1px solid var(--color-dark-3);position:relative;overflow:hidden}
-.glass{background:var(--glass-bg);border-bottom:1px solid var(--glass-brd);backdrop-filter:blur(12px)}
-.hero-bg{position:absolute;inset:0;pointer-events:none;opacity:.18}
-.hero-bg img{width:100%;height:100%;object-fit:cover}
-.hero-inner{position:relative;display:flex;justify-content:space-between;align-items:center;min-height:84px}
-.brand{display:flex;align-items:center;gap:.75rem}
-.logo{width:42px;height:42px}
-.brand-text .kicker{font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.15rem;opacity:.95}
-.brand-text h1{font-size:1.6rem;line-height:1;color:#fff !important;}
-.brand-text .tagline{font-size:.9rem;color:var(--text-muted)}
-.actions button{background:none;border:none;color:var(--text-light);font-size:1rem;cursor:pointer;margin-left:.35rem}
-.status{position:relative;margin-top:.45rem;font-size:.9rem;color:var(--text-muted);display:flex;gap:.75rem}
+a { color: var(--clr-accent); text-decoration: none; }
 
-/* Sidebar */
-.side-menu{position:fixed;top:0;left:-260px;width:260px;height:100%;background:var(--color-dark-2);transition:left .3s ease;padding:1rem;z-index:999}
-.side-menu.open{left:0}
-.menu-nav a,.menu-nav button{display:block;padding:.75rem;border-radius:.5rem;color:var(--text-light);background:transparent;border:none;text-align:left;font-size:1rem;margin-bottom:.25rem;cursor:pointer;width:100%}
-.menu-nav a:hover,.menu-nav button:hover,.menu-nav a:focus{background:var(--color-blue);color:#fff}
-.menu-sep{border:0;border-top:1px solid rgba(255,255,255,.08);margin:.5rem 0}
+/* ===== Header ===== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
 
-/* Main / Card (glass) */
-.container{display:grid;grid-template-columns:1fr;gap:1rem;padding:1rem}
-.card{background:var(--color-dark-2);padding:1rem;border-radius:.75rem;box-shadow:0 2px 12px rgba(0,0,0,.4)}
-.glass.card{background:var(--glass-bg);border:1px solid var(--glass-brd);box-shadow:0 8px 30px rgba(0,0,0,.45), inset 0 1px 0 var(--glass-inner)}
-.glass-min{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px)}
+.topbar .hero-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.2rem;
+}
 
-/* Quiz */
-.question-box{font-size:1.25rem;margin:1rem 0;min-height:3rem}
-.choices{display:flex;flex-direction:column;gap:.5rem}
-.choices button{background:var(--color-dark-3);border:1px solid var(--color-dark-3);padding:.75rem;border-radius:.5rem;color:#fff;cursor:pointer;text-align:left}
-.choices button.correct{background:var(--color-green);color:#000}
-.choices button.incorrect{background:var(--danger)}
-.controls{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
-.btn{padding:.6rem 1.2rem;border:none;border-radius:.5rem;cursor:pointer;font-weight:600}
-.btn.primary{background:var(--color-blue);color:#fff}
-.btn.ghost{background:transparent;border:1px solid var(--color-blue);color:var(--color-blue)}
-.btn:hover{opacity:.9}
+.brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
 
-/* Timers */
-.timer-wrapper{height:4px;background:var(--color-dark-3);margin-bottom:.5rem;border-radius:2px}
-.timer-bar{height:4px;background:var(--color-blue);width:0%;border-radius:2px;transition:width 1s linear}
-.elapsed-time{font-size:.85rem;color:var(--text-muted)}
-.qtimer-wrapper{height:8px;background:#0c274f;margin-bottom:.5rem;border-radius:4px;overflow:hidden}
-.qtimer-bar{height:8px;width:100%;background:linear-gradient(90deg,#29a1ff,#1a73e8,#0b53c6);transition:width .1s linear}
-.qtimer-bar.warn{background:linear-gradient(90deg,#ff7a7a,#ff4c4c)}
+.logo {
+  width: 40px;
+  height: 40px;
+  margin-right: 0.6rem;
+}
 
-/* Premium streak bar (glass pips + redeem sweep) */
-.streak-vis{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;margin:14px 0 4px;padding:6px;border-radius:14px}
-.streak-dot{height:18px;border-radius:12px;position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);box-shadow:0 8px 18px rgba(0,0,0,.32), inset 0 2px 6px rgba(255,255,255,.06);overflow:hidden;transform:translateZ(0);transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease}
-.streak-dot.is-correct{background:linear-gradient(90deg,#1be28a,#29ffa1);border-color:rgba(41,255,161,.65);box-shadow:0 0 12px rgba(41,255,161,.35),0 10px 22px rgba(0,0,0,.36),inset 0 0 10px rgba(255,255,255,.16)}
-.streak-dot.is-wrong{background:linear-gradient(90deg,#ff6d6d,#ff4c4c);border-color:rgba(255,76,76,.65);box-shadow:0 0 12px rgba(255,76,76,.35),0 10px 22px rgba(0,0,0,.36),inset 0 0 10px rgba(255,255,255,.12)}
-.streak-dot.redeem{animation:redeemPulse .9s ease-out forwards;position:relative;z-index:1}
-@keyframes redeemPulse{0%{transform:scale(1)}30%{transform:scale(1.06)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
-.streak-dot.redeem::after{content:"";position:absolute;inset:-20% -40%;background:linear-gradient(110deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 65%);transform:translateX(-120%);filter:blur(6px);animation:redeemSweep .9s ease-out forwards}
-@keyframes redeemSweep{0%{opacity:0;transform:translateX(-120%)}30%{opacity:.85}100%{opacity:0;transform:translateX(120%)}}
+.brand-text h1 {
+  font-size: 1.4rem;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
 
-/* Footer */
-.footer{text-align:center;padding:1rem;font-size:.8rem;color:var(--text-muted)}
+.tagline {
+  font-size: 0.85rem;
+  color: var(--clr-muted);
+}
 
-/* Responsive */
-@media (min-width:768px){
-  .brand-text h1{font-size:1.8rem}
-  .container{grid-template-columns:1fr}
+.status {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 0.4rem;
+  color: var(--clr-muted);
+}
+
+/* ===== Main Card ===== */
+.container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 1.4rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  backdrop-filter: blur(16px);
+  transition: all 0.3s ease;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  background: var(--glass-bg);
+  color: var(--clr-fg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn:hover {
+  background: var(--clr-accent);
+  color: #fff;
+}
+.btn.primary {
+  background: var(--clr-accent);
+  color: #fff;
+  border: none;
+}
+
+/* ===== Quiz Elements ===== */
+.question-box {
+  text-align: center;
+  margin: 1.4rem 0;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+.choice-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--clr-fg);
+  padding: 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.choice-btn:hover {
+  background: var(--clr-accent);
+  color: #fff;
+}
+
+/* ===== Streak Bar ===== */
+.streak-vis {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.8rem 0;
+  gap: 6px;
+}
+.streak-dot {
+  width: 12px;
+  height: 12px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 0 4px rgba(255,255,255,0.4);
+}
+.streak-dot.active {
+  background: var(--clr-accent);
+  box-shadow: 0 0 6px var(--clr-accent);
+}
+.streak-dot.fail {
+  background: #ff4757;
+  box-shadow: 0 0 6px #ff4757;
+}
+
+/* ===== Timer Bars ===== */
+.timer-wrapper, .qtimer-wrapper {
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  height: 8px;
+  margin-bottom: 0.8rem;
+}
+.timer-bar, .qtimer-bar {
+  background: var(--clr-accent);
+  height: 100%;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ===== Poster Overlay ===== */
+.poster-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.8s ease;
+}
+.poster-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.poster-overlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.poster-tap {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+/* ===== Footer ===== */
+.footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: var(--clr-muted);
+}
+.footer a {
+  color: var(--clr-accent);
 }
