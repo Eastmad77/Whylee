@@ -1,64 +1,44 @@
-/**
- * Whylee Shell — UI helpers & navigation logic
- * Handles menu toggles, sound control, and persistent settings
- */
-
 document.addEventListener("DOMContentLoaded", () => {
   const menuBtn = document.getElementById("mmMenuBtn");
   const sideMenu = document.getElementById("mmSideMenu");
   const soundBtn = document.getElementById("soundBtn");
   const notifyBtn = document.getElementById("notifyItem");
 
-  // ----- Menu Toggle -----
+  // --- Menu toggle ---
   if (menuBtn && sideMenu) {
-    menuBtn.addEventListener("click", () => {
-      const open = sideMenu.getAttribute("aria-hidden") === "false";
-      sideMenu.setAttribute("aria-hidden", open ? "true" : "false");
-      sideMenu.classList.toggle("open", !open);
-    });
+    menuBtn.onclick = () => {
+      const isOpen = sideMenu.getAttribute("aria-hidden") === "false";
+      sideMenu.setAttribute("aria-hidden", isOpen ? "true" : "false");
+      sideMenu.classList.toggle("open", !isOpen);
+    };
   }
 
-  // ----- Sound Toggle -----
-  let soundOn = localStorage.getItem("whylee_sound") !== "off";
-  updateSoundIcon();
-
+  // --- Sound toggle ---
   if (soundBtn) {
-    soundBtn.addEventListener("click", () => {
+    let soundOn = localStorage.getItem("whylee_sound") !== "off";
+    soundBtn.textContent = soundOn ? "🔊" : "🔇";
+    soundBtn.onclick = () => {
       soundOn = !soundOn;
       localStorage.setItem("whylee_sound", soundOn ? "on" : "off");
-      updateSoundIcon();
-    });
+      soundBtn.textContent = soundOn ? "🔊" : "🔇";
+    };
   }
 
-  function updateSoundIcon() {
-    if (soundBtn) soundBtn.textContent = soundOn ? "🔊" : "🔇";
-  }
-
-  // ----- Notification Toggle -----
-  let notifyOn = localStorage.getItem("whylee_notify") !== "off";
-  updateNotifyLabel();
-
+  // --- Notifications toggle ---
   if (notifyBtn) {
-    notifyBtn.addEventListener("click", async () => {
+    let notifyOn = localStorage.getItem("whylee_notify") !== "off";
+    notifyBtn.textContent = `🔔 Notifications: ${notifyOn ? "ON" : "OFF"}`;
+    notifyBtn.onclick = async () => {
       notifyOn = !notifyOn;
       localStorage.setItem("whylee_notify", notifyOn ? "on" : "off");
-      updateNotifyLabel();
-
+      notifyBtn.textContent = `🔔 Notifications: ${notifyOn ? "ON" : "OFF"}`;
       if (notifyOn && "Notification" in window) {
         const perm = await Notification.requestPermission();
-        if (perm !== "granted") {
-          alert("Notifications are disabled in browser settings.");
-        }
+        if (perm !== "granted") alert("Notifications disabled in browser.");
       }
-    });
+    };
   }
 
-  function updateNotifyLabel() {
-    if (notifyBtn)
-      notifyBtn.textContent = `🔔 Notifications: ${notifyOn ? "ON" : "OFF"}`;
-  }
-
-  // ----- Theme Initialization -----
   document.body.classList.add("ready");
   console.log("[Whylee Shell] UI loaded");
 });
