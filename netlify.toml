@@ -1,16 +1,12 @@
 # =====================================================
 # Whylee — Your Daily Brain Bolt ⚡
-# Netlify Configuration v7.3
+# Netlify Configuration v7.4
 # =====================================================
 
 [build]
   publish = "public"
   functions = "netlify/functions"
   command = "npm run build"
-
-[dev]
-  command = "netlify dev"
-  publish = "public"
 
 # ---------- Redirects ----------
 [[redirects]]
@@ -38,4 +34,4 @@
 [[scheduled]]
   name = "daily-questions"
   cron = "0 2 * * *"
-  function = "questions"
+  function = "generate-questions"
