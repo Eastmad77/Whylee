@@ -1,41 +1,65 @@
 /**
- * Netlify Function: generate-questions.js
- * ---------------------------------------
- * Runs daily via Netlify scheduled job.
- * Generates 12 new questions across all 3 Whylee levels.
+ * Whylee — Scheduled Daily Question Generator
+ * File: netlify/functions/generate-questions.js
+ *
+ * Runs via Netlify Scheduled Function at 02:00 UTC every day
+ * → Generates fresh daily questions via OpenAI
+ * → Writes them to /public/questions.csv for use by app.js
  */
 
-import OpenAI from "openai";
 import fs from "fs";
 import path from "path";
+import { OpenAI } from "openai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export default async function handler(req, res) {
+  const outputPath = path.resolve("./public/questions.csv");
 
-export default async function handler() {
   try {
-    console.log("[Whylee] Generating new daily questions...");
+    const client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
 
     const prompt = `
-      Generate 12 diverse brain-training quiz questions.
-      Format as CSV: question,optionA,optionB,optionC,optionD,correctAnswer,level
-      Levels: 1 (Quick Fire), 2 (Pattern Solve), 3 (Challenge)
-      Keep text short, fun, and solvable in 15 seconds.
-    `;
+Generate 6 new daily brain-teaser questions with answers.
+Focus on quick, fun, general-knowledge questions suitable for ages 10–70.
+Output as CSV with header "question,answer".
+Example:
+question,answer
+What color is the sky?,Blue
+`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "system", content: prompt }],
-      temperature: 0.8,
+      messages: [
+        { role: "system", content: "You generate concise, clear daily brain challenge questions for an app." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.8
     });
 
     const csv = completion.choices[0].message.content.trim();
-    const filePath = path.join(process.cwd(), "public", "questions.csv");
-    fs.writeFileSync(filePath, csv);
 
-    console.log("[Whylee] ✅ New questions saved to public/questions.csv");
-    return { statusCode: 200, body: "Questions updated successfully." };
-  } catch (error) {
-    console.error("[Whylee] ❌ Error generating questions:", error);
-    return { statusCode: 500, body: "Error generating questions." };
+    // Write new CSV to /public
+    fs.writeFileSync(outputPath, csv, "utf-8");
+    console.log(`[Whylee] ✅ Generated new daily questions at ${new Date().toISOString()}`);
+
+    if (res) res.status(200).send("Daily questions generated successfully.");
+    else return { statusCode: 200, body: "Daily questions generated successfully." };
+
+  } catch (err) {
+    console.error("[Whylee] ❌ Error generating daily questions:", err);
+
+    const fallback =
+      "question,answer\n" +
+      "What color is the sky?,Blue\n" +
+      "What is 5 + 5?,10\n" +
+      "Which planet is known as the Red Planet?,Mars\n" +
+      "What is the capital of France?,Paris\n" +
+      "What do bees make?,Honey\n" +
+      "What is 9 × 3?,27\n";
+
+    fs.writeFileSync(outputPath, fallback, "utf-8");
+    if (res) res.status(200).send("Fallback questions written.");
+    else return { statusCode: 200, body: "Fallback questions written." };
   }
 }
