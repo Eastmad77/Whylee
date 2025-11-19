@@ -1,44 +1,35 @@
 document.addEventListener("DOMContentLoaded", () => {
   const menuBtn = document.getElementById("mmMenuBtn");
   const sideMenu = document.getElementById("mmSideMenu");
-  const soundBtn = document.getElementById("soundBtn");
-  const notifyBtn = document.getElementById("notifyItem");
+  const notifyItem = document.getElementById("notifyItem");
 
-  // --- Menu toggle ---
-  if (menuBtn && sideMenu) {
-    menuBtn.onclick = () => {
-      const isOpen = sideMenu.getAttribute("aria-hidden") === "false";
-      sideMenu.setAttribute("aria-hidden", isOpen ? "true" : "false");
-      sideMenu.classList.toggle("open", !isOpen);
-    };
+  function openMenu(){
+    sideMenu.classList.add("open");
+    sideMenu.setAttribute("aria-hidden","false");
   }
 
-  // --- Sound toggle ---
-  if (soundBtn) {
-    let soundOn = localStorage.getItem("whylee_sound") !== "off";
-    soundBtn.textContent = soundOn ? "🔊" : "🔇";
-    soundBtn.onclick = () => {
-      soundOn = !soundOn;
-      localStorage.setItem("whylee_sound", soundOn ? "on" : "off");
-      soundBtn.textContent = soundOn ? "🔊" : "🔇";
-    };
+  function closeMenu(){
+    sideMenu.classList.remove("open");
+    sideMenu.setAttribute("aria-hidden","true");
   }
 
-  // --- Notifications toggle ---
-  if (notifyBtn) {
-    let notifyOn = localStorage.getItem("whylee_notify") !== "off";
-    notifyBtn.textContent = `🔔 Notifications: ${notifyOn ? "ON" : "OFF"}`;
-    notifyBtn.onclick = async () => {
-      notifyOn = !notifyOn;
-      localStorage.setItem("whylee_notify", notifyOn ? "on" : "off");
-      notifyBtn.textContent = `🔔 Notifications: ${notifyOn ? "ON" : "OFF"}`;
-      if (notifyOn && "Notification" in window) {
-        const perm = await Notification.requestPermission();
-        if (perm !== "granted") alert("Notifications disabled in browser.");
-      }
-    };
-  }
+  menuBtn?.addEventListener("click", (e)=>{
+    e.stopPropagation();
+    sideMenu.classList.contains("open") ? closeMenu() : openMenu();
+  });
 
-  document.body.classList.add("ready");
-  console.log("[Whylee Shell] UI loaded");
+  document.addEventListener("click", (e)=>{
+    if (!sideMenu.contains(e.target)) closeMenu();
+  });
+
+  notifyItem?.addEventListener("click",()=>{
+    const off = notifyItem.textContent.includes("OFF");
+    notifyItem.textContent = off ? "🔔 Notifications: ON" : "🔕 Notifications: OFF";
+  });
+
+  /* Service Worker */
+  if ("serviceWorker" in navigator){
+    navigator.serviceWorker.register("/service-worker.js?v=5101")
+      .catch(()=>{});
+  }
 });
