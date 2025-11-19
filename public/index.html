@@ -3,148 +3,105 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Whylee · Your Daily Brain Bolt</title>
 
-  <title>Whylee — Your Daily Brain Bolt</title>
-  <meta name="description" content="Daily brain training with fast, focused challenges across three levels. Tap to begin, climb the ladder, and beat your best with Whylee — Your Daily Brain Bolt." />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Whylee" />
-  <meta property="og:title" content="Whylee — Your Daily Brain Bolt" />
-  <meta property="og:description" content="Daily brain training with fast, focused challenges across three levels. Tap to begin, climb the ladder, and beat your best with Whylee — Your Daily Brain Bolt." />
-  <meta property="og:image" content="/poster-01-start.jpg" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Whylee — Your Daily Brain Bolt" />
-  <meta name="twitter:description" content="Daily brain training with fast, focused challenges across three levels. Tap to begin, climb the ladder, and beat your best with Whylee — Your Daily Brain Bolt." />
-  <meta name="twitter:image" content="/poster-01-start.jpg" />
   <link rel="manifest" href="/site.webmanifest" />
-  <meta name="theme-color" content="#0a192f" />
-
+  <link rel="stylesheet" href="/style.css" />
   <link rel="icon" href="/favicon.svg" />
-  <link rel="stylesheet" href="/style.css?v=7003" />
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
-  <script src="/shell.js?v=5107" defer></script>
-  <script src="/app.js?v=7003" defer></script>
+
+  <script src="/shell.js" defer></script>
+  <script src="/app.js" defer></script>
 </head>
+
 <body>
-  <header class="topbar glass">
+  <!-- Header -->
+  <header class="topbar">
     <div class="hero-bg"><img src="/header-graphic.svg" alt=""></div>
+
     <div class="hero-inner">
       <a class="brand" href="/">
-        <img src="/app-icon.svg" alt="Whylee Logo" class="logo" />
+        <img src="/app-icon.svg" alt="Whylee logo" class="logo" />
         <div class="brand-text">
-          <div class="kicker">Your Smart Companion</div>
+          <div class="kicker">Your Daily Brain Bolt</div>
           <h1>Whylee</h1>
-          <div class="tagline">Whylee - Your Daily Brain Bolt</div>
+          <div class="tagline">Tap to Begin</div>
         </div>
       </a>
+
       <div class="actions">
         <button id="mmMenuBtn" aria-label="Menu">☰</button>
         <button id="soundBtn" aria-label="Sound">🔊</button>
       </div>
     </div>
-    <div class="status">
-      <span id="setLabel" class="muted">Ready</span>
-      <span id="pillScore" class="muted">Score 0</span>
-      <span id="progressLabel" class="muted">Q 0/12</span>
-    </div>
   </header>
 
+  <!-- Start splash poster -->
+  <div id="startSplash" class="whylee-splash" role="dialog">
+    <button id="splashTap" class="splash-tap" aria-label="Tap to begin"></button>
+  </div>
+
+  <!-- Side Menu -->
   <aside id="mmSideMenu" class="side-menu" aria-hidden="true">
     <nav class="menu-nav">
-      <a href="/" aria-current="page">🏠 Home</a>
+      <a href="/">🏠 Home</a>
       <a href="/about.html">ℹ️ About</a>
-      <a href="/pro.html">⭐ Pro</a>
       <a href="/privacy.html">🔒 Privacy</a>
       <a href="/terms.html">📄 Terms</a>
-      <a href="/contact.html">✉️ Contact</a>
       <hr class="menu-sep" />
       <button id="notifyItem" class="menu-btn">🔔 Notifications: ON</button>
     </nav>
   </aside>
 
+  <!-- Main Game -->
   <main class="container">
-    <section class="card glass quiz-card">
-      <div class="timer-wrapper"><div id="timerBar" class="timer-bar"></div></div>
-      <div class="elapsed-time">Time: <span id="elapsedTime">0:00</span></div>
 
-      <div class="streak-vis glass-min" id="streakVis"></div>
+    <section class="game-card">
+      <h2 id="setLabel">Press Start</h2>
 
-      <div class="controls">
-        <label for="levelSelect">Level:</label>
-        <select id="levelSelect">
-          <option value="1" selected>1 — Quick Fire</option>
-          <option value="2">2 — Pattern Solve</option>
-          <option value="3">3 — Challenge</option>
-        </select>
+      <div id="startBtnWrap">
+        <button id="startBtn" class="primary-btn">Start</button>
       </div>
 
-      <div class="qtimer-wrapper"><div id="qTimerBar" class="qtimer-bar"></div></div>
-
-      <div id="questionBox" class="question-box">Tap the poster to begin</div>
-      <div id="choices" class="choices"></div>
-
-      <div class="controls">
-        <button id="startBtn" class="btn primary">Start</button>
-        <button id="shuffleBtn" class="btn ghost">Shuffle Set</button>
-        <button id="shareBtn" class="btn ghost">Share</button>
+      <!-- Countdown Overlay -->
+      <div id="countdownOverlay" hidden>
+        <div id="countNum">3</div>
       </div>
 
-      <div id="gameOverBox" class="footer" style="display:none;">
-        <p id="gameOverText"></p>
-        <button id="playAgainBtn" class="btn primary" style="display:none;">Play Again</button>
+      <!-- Timer -->
+      <div id="timerBar"></div>
+
+      <!-- Question -->
+      <div id="questionBox">Tap Start to Begin</div>
+
+      <!-- Choices -->
+      <div id="choices"></div>
+
+      <!-- Score -->
+      <div class="game-footer">
+        <div id="pillScore" class="score-pill">Score 0</div>
+        <div id="progressLabel">Q 0/12</div>
+        <div id="elapsedTime">0:00</div>
       </div>
+
+      <!-- Streak -->
+      <div id="streakVis" class="streak-bar"></div>
+
+      <!-- End -->
+      <div id="gameOverBox" class="game-over" style="display:none;">
+        <div id="gameOverText">Game Over</div>
+        <button id="playAgainBtn" class="primary-btn">Play Again</button>
+      </div>
+
+      <!-- Success -->
+      <div id="successSplash" aria-hidden="true" class="success-splash">
+        <div class="success-inner">Nice Work!</div>
+      </div>
+
     </section>
   </main>
-
-  <!-- Poster overlay system -->
-  <div id="posterOverlay" class="poster-overlay hidden">
-    <img id="posterImg" src="/poster-01-start.jpg" alt="Whylee Poster" />
-    <button id="posterTap" class="poster-tap" aria-label="Tap to continue"></button>
-  </div>
-
-  <!-- Toast for updates -->
-  <div id="updateToast" class="update-toast hidden">
-    <span>✨ A new version of Whylee is available.</span>
-    <button id="refreshBtn">Refresh</button>
-  </div>
 
   <footer class="footer">
     <p>© 2025 Whylee · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
   </footer>
-
-  <!-- Service Worker Registration + Update Toast -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/service-worker.js")
-          .then((registration) => {
-            console.log("[Whylee] Service Worker registered.", registration);
-
-            // Listen for updates
-            registration.addEventListener("updatefound", () => {
-              const newWorker = registration.installing;
-              newWorker.addEventListener("statechange", () => {
-                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-                  showUpdateToast();
-                }
-              });
-            });
-          })
-          .catch((err) => console.error("[Whylee] SW registration failed:", err));
-      });
-    }
-
-    function showUpdateToast() {
-      const toast = document.getElementById("updateToast");
-      toast.classList.remove("hidden");
-      toast.classList.add("show");
-      document.getElementById("refreshBtn").onclick = () => {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
-        }
-        window.location.reload(true);
-      };
-    }
-  </script>
 </body>
 </html>
