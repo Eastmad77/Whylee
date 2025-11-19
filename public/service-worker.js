@@ -1,102 +1,78 @@
-/**
- * =====================================================
- * Whylee — Service Worker v7.4
- * Offline-first caching with update detection + safe filters
- * =====================================================
- */
+// Whylee — PWA Service Worker
 
-const CACHE_NAME = "whylee-cache-v7-4";
+const STATIC = "whylee-static-v3.8.0";
+const RUNTIME = "whylee-runtime-v3.8.0";
 
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/app.js",
-  "/shell.js",
-  "/favicon.svg",
-  "/app-icon.svg",
-  "/header-graphic.svg",
-  "/icon-192.png",
-  "/icon-512.png",
+  "/", "/index.html",
+  "/style.css", "/app.js", "/shell.js",
+  "/favicon.svg","/app-icon.svg","/header-graphic.svg",
+  "/icon-192.png","/icon-512.png",
+  "/site.webmanifest",
   "/poster-01-start.jpg",
-  "/poster-level2.jpg",
-  "/poster-06-challenge.jpg",
-  "/poster-gameover.jpg",
-  "/poster-night.jpg",
-  "/questions.csv",
-  "/site.webmanifest"
+  "/questions.csv"
 ];
 
-// ---------- INSTALL ----------
-self.addEventListener("install", (event) => {
-  console.log("[Whylee SW] Installing...");
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+self.addEventListener("install", (evt)=>{
+  evt.waitUntil(
+    caches.open(STATIC).then(cache => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-// ---------- ACTIVATE ----------
-self.addEventListener("activate", (event) => {
-  console.log("[Whylee SW] Activating new service worker...");
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => key !== CACHE_NAME && caches.delete(key))
-      )
+self.addEventListener("activate", (evt)=>{
+  evt.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key=>{
+        if (![STATIC, RUNTIME].includes(key)) return caches.delete(key);
+      }))
     )
   );
   self.clients.claim();
 });
 
-// ---------- FETCH ----------
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
+self.addEventListener("fetch",(evt)=>{
+  const req = evt.request;
+  const url = new URL(req.url);
 
-  // Skip non-GET requests or invalid schemes (chrome-extension, data:, etc.)
-  if (
-    request.method !== "GET" ||
-    !request.url.startsWith("http") ||
-    request.url.startsWith("chrome-extension://") ||
-    request.url.startsWith("data:")
-  ) {
+  // Only GET
+  if (req.method !== "GET") return;
+
+  // Same-origin
+  if (url.origin === location.origin){
+
+    // Asset → cache-first
+    if (ASSETS.includes(url.pathname)){
+      evt.respondWith(
+        caches.open(STATIC).then(async cache=>{
+          const cached = await cache.match(req);
+          if (cached) return cached;
+
+          const net = await fetch(req);
+          if (net && net.ok) cache.put(req, net.clone());
+          return net;
+        })
+      );
+      return;
+    }
+
+    // Others → stale-while-revalidate
+    evt.respondWith(
+      caches.open(RUNTIME).then(async cache=>{
+        const cached = await cache.match(req);
+        const fetchPromise = fetch(req).then(net=>{
+          if (net && net.ok) cache.put(req, net.clone());
+          return net;
+        });
+        return cached || fetchPromise;
+      })
+    );
+
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request)
-        .then((response) => {
-          if (
-            !response ||
-            response.status !== 200 ||
-            response.type !== "basic"
-          ) {
-            return response;
-          }
-
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            try {
-              cache.put(request, resClone);
-            } catch (err) {
-              console.warn("[Whylee SW] Skipped non-cacheable:", request.url);
-            }
-          });
-          return response;
-        })
-        .catch(() => cached || caches.match("/index.html"));
-      return cached || fetchPromise;
-    })
+  // External → network fallback to cache
+  evt.respondWith(
+    fetch(req).catch(()=>caches.match(req))
   );
 });
-
-// ---------- MESSAGE ----------
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    console.log("[Whylee SW] Update triggered via SKIP_WAITING");
-    self.skipWaiting();
-  }
-});
-
-console.log("[Whylee SW] Registered and running 🎯");
